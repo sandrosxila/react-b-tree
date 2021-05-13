@@ -1,0 +1,311 @@
+.flash-it {
+    color: #f2f;
+    -webkit-animation: flash linear 1s infinite;
+    animation: flash linear 1s infinite;
+}
+
+@-webkit-keyframes flash {
+    0% {
+        opacity: 1;
+    }
+    50% {
+        opacity: .1;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+
+@keyframes flash {
+    0% {
+        opacity: 1;
+    }
+    50% {
+        opacity: .1;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+
+.bg-space-black {
+    background-color: rgb(19, 18, 18);
+}
+
+.bg-deep-ocean {
+    background-color: #02070d !important;
+}
+
+.bg-soap-bubble {
+    background: linear-gradient(to right, rgb(201, 214, 255), rgb(226, 226, 226));
+}
+
+.bg-grey-phantom {
+    background: linear-gradient(110.3deg, rgb(49, 58, 68) 8.8%, rgb(37, 43, 49) 95.1%)
+}
+
+.bg-midnight{
+    background: rgb(22, 23, 23);
+}
+
+.green-laser{
+    color: rgb(0, 174, 164) !important;
+    border-top-color: rgb(0, 115, 109) !important;
+    border-bottom-color: rgb(0, 115, 109) !important;
+}
+
+.green-laser:hover{
+    color: rgb(0, 174, 164) !important;
+    border-color: rgb(0, 115, 109) !important;
+    box-shadow: 0 0.5em 0.5em -0.4em rgb(0, 174, 164);
+}
+
+.red-laser{
+    color: rgb(227, 30, 30) !important;
+    border-top-color: rgb(165, 4, 4) !important;
+    border-bottom-color: rgb(165, 4, 4) !important;
+}
+
+.red-laser:hover{
+    color: rgb(227, 30, 30) !important;
+    border-color: rgb(165, 4, 4) !important;
+    box-shadow: 0 0.5em 0.5em -0.4em rgb(227, 30, 30);
+}
+
+.blue-laser{
+    color: rgba(67,166,238,1) !important;
+    border-top-color: rgba(17,130,193,1) !important;
+    border-bottom-color: rgba(17,130,193,1) !important;
+}
+
+.blue-laser:hover{
+    color: rgba(67,166,238,1) !important;
+    border-color: rgba(17,130,193,1) !important;
+    box-shadow: 0 0.5em 0.5em -0.4em rgba(67,166,238,1);
+}
+
+.purple-laser{
+    color: rgb(128, 163, 224) !important;
+    border-top-color: rgb(105, 147, 188) !important;
+    border-bottom-color: rgb(105, 147, 188) !important;
+}
+
+.purple-laser:hover{
+    color: rgb(128, 163, 224) !important;
+    border-color: rgb(105, 147, 188) !important;
+    box-shadow: 0 0.5em 0.5em -0.4em rgb(128, 163, 224);
+}
+
+.fire-laser{
+    /*background-image: linear-gradient( 179.5deg,  rgba(255,230,69,1) 3.3%, rgba(255,157,73,1) 96% );*/
+    /*background-image: linear-gradient( 319.6deg,  rgba(243,0,79,1) 20.5%, rgba(255,236,68,1) 110.9% );*/
+    background-image: radial-gradient( circle farthest-corner at 1.2% 5%,  rgba(255,94,157,1) 34.7%, rgba(255,78,6,1) 92.3% );
+    color: #fff !important;
+    border-top-color: rgba(255,78,6,1) !important;
+    border-bottom-color: rgba(255,78,6,1) !important;
+}
+
+.fire-laser:hover{
+    color: rgba(241,115,30,1) !important;
+    border-color: rgba(255,78,6,1) !important;
+    box-shadow: 0 0.5em 0.5em -0.4em rgba(241,115,30,1);
+}
+
+.green-laser, .red-laser, .blue-laser, .purple-laser, .fire-laser{
+    background: transparent !important;
+    border-left-color: transparent !important;
+    border-right-color: transparent !important;
+    border-radius: 0 !important;
+    transition: color 0.3s ease-in-out, background-color 0.3s ease-in-out, border-color 0.3s ease-in-out, box-shadow 0.3s ease-in-out !important;
+}
+
+.green-laser:hover, .red-laser:hover, .blue-laser:hover, .purple-laser:hover, .fire-laser:hover{
+    background: transparent !important;
+    border-width: 1px;
+    transform: translateY(-0.15em);
+}
+
+.green-laser:focus, .red-laser:focus, .blue-laser:focus, .purple-laser:focus, .fire-laser:focus{
+    box-shadow: 0 0 0 0 transparent !important;
+    outline: 0 !important;
+    background: transparent !important;
+    border-left-color: transparent !important;
+    border-right-color: transparent !important;
+    border-radius: 0 !important;
+    transition: color 0.3s ease-in-out, background-color 0.3s ease-in-out, border-color 0.3s ease-in-out, box-shadow 0.3s ease-in-out !important;
+}
+
+.text-input-underlined{
+    background: transparent !important;
+    color:#fff !important;
+    border-radius: 0 !important;
+    border-left-color: transparent !important;
+    border-right-color: transparent !important;
+    border-top-color: transparent !important;
+    border-bottom-color: rgba(255, 255, 255, 0.7) !important;
+    transition: 0.2s;
+    padding-left: 4px !important;
+    padding-right: 4px !important;
+}
+
+.text-input-underlined:focus{
+    outline:0;
+    box-shadow: none !important;
+    border-bottom-color: #fff !important;
+}
+
+.purple-outline-dawn {
+    color: #af94cb !important;
+    background: transparent;
+    border-color: #af94cb !important;
+}
+
+.purple-outline-dawn:hover {
+    color: white !important;
+    background-color: #6d5d7d !important;
+    border-color: #af94cb !important;
+}
+
+.purple-outline-dawn:focus {
+    outline: 0;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.08) !important;
+}
+
+.text-input-space-black {
+    background: rgb(19, 18, 18) !important;
+    color: azure !important;
+    border-color: #38658c !important;
+}
+
+.text-input-space-black:focus {
+    border-color: #b192ca !important;
+    outline: 0;
+    box-shadow: 0 0 0 0.2rem rgba(169, 154, 204, 0.06) !important;
+}
+
+.opal-outline-emerald {
+    color: #19a886 !important;
+    border-color: #19a886 !important;
+}
+
+.opal-outline-emerald:hover {
+    color: #fff !important;
+    background-color: #106450 !important;
+    border-color: #19a886 !important;
+}
+
+.opal-outline-emerald:focus {
+    outline: 0;
+    box-shadow: 0 0 0 0.2rem rgba(25, 168, 134, 0.08) !important;
+}
+
+.sunset-outline-orange {
+    color: #F22E00 !important;
+    border-color: #D02801 !important;
+}
+
+.sunset-outline-orange:hover {
+    color: #fff !important;
+    background-color: #841a01 !important;
+    border-color: #D02801 !important;
+}
+
+.sunset-outline-orange:focus {
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.08);
+    border-color: #D02801 !important;
+}
+
+.ocean-outline-zircon {
+    color: #00a6a0 !important;
+    border-color: #00a6a0 !important;
+}
+
+.ocean-outline-zircon:hover {
+    color: #fff !important;
+    background-color: #006460 !important;
+    border-color: #00a6a0 !important;
+}
+
+
+.mild-sky, .tender-rose, .blue-sky, .cosmic-fusion, .fresh-grass,
+.georgian-blood, .confused-ocean, .cloudy-sky, .sun-core {
+    transition: 1s !important;
+    background-size: 200% auto;
+    color: #fff !important;
+}
+
+.mild-sky:hover, .tender-rose:hover, .blue-sky:hover, .cosmic-fusion:hover, .fresh-grass:hover,
+.georgian-blood:hover, .confused-ocean:hover, .cloudy-sky:hover, .sun-core:hover {
+    background-position: right center; /* change the direction of the change here */
+    color: #fff;
+    text-decoration: none;
+}
+
+.mild-sky {
+    background-image: linear-gradient(to right, #283c86, rgb(5, 117, 230), #283c86)
+}
+
+.tender-rose {
+    background-image: linear-gradient(to right, #93291E, #ED213A, #93291E)
+}
+
+.blue-sky {
+    background-image: linear-gradient(to right, #0083B0, #00B4DB, #0083B0)
+}
+
+.cosmic-fusion {
+    background-image: linear-gradient(to right, #333399, #ff00cc, #333399)
+}
+
+.fresh-grass {
+    background-image: linear-gradient(109.6deg, rgba(0, 191, 165, 1) 11.2%, rgba(0, 140, 122, 1) 100.2%);
+    background-position: center 60%;
+}
+
+.georgian-blood {
+    background-image: linear-gradient(109.6deg, rgba(226, 37, 37, 1) 11.2%, rgb(169, 14, 36) 100.2%);
+    background-position: center 60%;
+}
+
+.confused-ocean {
+    /*background-image: radial-gradient( circle farthest-corner at 22.4% 21.7%,  rgba(4,189,228,1) 0%, rgba(2,83,185,1) 100.2% );*/
+    background-image: linear-gradient(109.6deg, rgb(5, 181, 219) 11.2%, rgba(2,83,185,1) 100.2%);
+    background-position: center 60%;
+}
+
+.cloudy-sky{
+    background-image: linear-gradient(109.6deg, rgb(78, 100, 117) 11.2%, rgba(49,55,82,1) 100.2%);
+    background-position: center 60%;
+}
+
+.sun-core{
+    /*background-image: linear-gradient( 89.7deg,  rgba(0,32,95,1) 2.8%, rgba(132,53,142,1) 97.8% );*/
+    background-image: linear-gradient(109.6deg, rgba(132,53,142,1) 11.2%, rgba(0,32,95,1) 100.2%);
+    background-position: center 40%;
+}
+
+.flare-orange, .flare-orange-reverse {
+    background-image: linear-gradient(to right, #f5af19, #f83600, #f5af19)
+}
+
+.flare-orange-reverse {
+    background-position: right center;
+}
+
+.flare-orange:hover {
+    background-position: right center; /* change the direction of the change here */
+    color: #2d2828 !important;
+    text-decoration: none;
+}
+
+.flare-orange-reverse:hover {
+    background-position: left center; /* change the direction of the change here */
+    color: #2d2828 !important;
+    text-decoration: none;
+}
+
+.flare-orange, .flare-orange-reverse {
+    transition: 1s !important;
+    background-size: 200% auto;
+    color: #2d2828 !important;
+}
