@@ -3,6 +3,8 @@ import {initialWindow} from "./constants/constants";
 import Scene from "./components/Scene";
 import Header from "./components/layout/Header";
 import './App.css';
+import Footer from "./components/layout/Footer";
+import useWindowSize from "@rooks/use-window-size";
 
 function App() {
     const [headerHeight, setHeaderHeight] = useState(0);
@@ -12,6 +14,8 @@ function App() {
         initialWindow.width = window.innerWidth;
     },[]);
 
+    const {innerHeight} = useWindowSize();
+
     return (
         <div>
             <Header
@@ -20,6 +24,9 @@ function App() {
             <Scene
                 headerHeight={headerHeight}
             />
+            {
+                innerHeight > 500 && <Footer/>
+            }
         </div>
     );
 }

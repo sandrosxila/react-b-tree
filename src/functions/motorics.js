@@ -34,11 +34,14 @@ export const findElement =
         }
         if (element < nodeElement) {
             getLeftLine(node.id, idx).classList.add('flash-it');
+            console.log('left-line:', getLeftLine(node.id, idx));
             if (idx > 0) {
                 getDomElement(node.id, idx).classList.remove('flash-it');
-                getLeftLine(node.id, idx).classList.remove('flash-it');
-                if (!node.isLeaf)
-                    findElement(element, levels, currentLevel + 1, nextCluster(), idx, 0);
+                setTimeout(() => {
+                    getLeftLine(node.id, idx).classList.remove('flash-it');
+                    if (!node.isLeaf)
+                        findElement(element, levels, currentLevel + 1, nextCluster(), idx, 0);
+                }, 1500);
             } else {
                 setTimeout(() => {
                     getDomElement(node.id, idx).classList.remove('flash-it');
