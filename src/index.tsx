@@ -4,10 +4,22 @@ import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 import 'bootstrap/dist/css/bootstrap.css';
-import {createStore} from "redux";
-import {Provider} from "react-redux";
-import allReducers from "./reducers/index"
+import { createStore, StoreEnhancer } from 'redux';
+import { Provider } from 'react-redux';
+import allReducers from './reducers/index';
+import { ITree } from './reducers/tree';
+import { ITheme } from './reducers/theme';
 
+export type RootState = {
+    tree: ITree,
+    theme: ITheme
+}
+
+declare global {
+    interface Window {
+        __REDUX_DEVTOOLS_EXTENSION__?: () => StoreEnhancer;
+    }
+}
 
 const store = createStore(
     allReducers,
@@ -16,7 +28,7 @@ const store = createStore(
 
 ReactDOM.render(
     <React.StrictMode>
-        <Provider store={store}>
+        <Provider store={ store }>
             <App/>
         </Provider>
     </React.StrictMode>,

@@ -1,11 +1,21 @@
-import Element from "./Element";
-import BNode from "./BNode";
+import Element from './Element';
+import BNode from './BNode';
 
-class BTree {
+class BTree<T = string | number> {
 
-    constructor(base) {
+    private base: number;
+    private root: BNode<T>;
+    private minElements: number;
+    public size: number;
+    private recentNode: BNode<T> | null;
+    private callStack: (() => void)[][];
+    private previous: { action: 'insert' | 'erase', data: T }[];
+    private forward: { action: 'insert' | 'erase', data: T }[];
+    private clearForwardOnAction: boolean;
+
+    constructor(base: number) {
         this.base = base;
-        this.root = new BNode();
+        this.root = new BNode<T>();
         this.minElements = Math.floor((base + 1) / 2) - 1;
         this.size = 0;
         this.recentNode = null;
@@ -15,16 +25,16 @@ class BTree {
         this.clearForwardOnAction = true;
     }
 
-    addAtLastIndexOfCallStack(item) {
+    addAtLastIndexOfCallStack(item: () => void): void {
         this.callStack[this.callStack.length - 1].push(
             item
         );
     }
 
-//    split the b-Node and return new node
-    split(node) {
-        let newNode = new BNode();
-        let newNodeIsLeafOldValue = newNode.isLeaf;
+    // split the b-Node and return new node
+    split(node: BNode<T>): BNode<T> {
+        const newNode = new BNode<T>();
+        const newNodeIsLeafOldValue = newNode.isLeaf;
         newNode.isLeaf = node.isLeaf;
         this.addAtLastIndexOfCallStack(
             () => {
@@ -32,129 +42,137 @@ class BTree {
             }
         );
         while (node.size() > Math.floor(this.base / 2)) {
-            let nodePopLastElement = node.popLast();
+            const nodePopLastElement = node.popLast()!;
+
             this.addAtLastIndexOfCallStack(
                 this.undoPopLast.bind(this, nodePopLastElement, node)
             );
             newNode.addFirst(nodePopLastElement);
+
             this.addAtLastIndexOfCallStack(
                 this.undoAddFirst.bind(this, newNode)
             );
-            if (newNode.first().hasLeftChild()) {
-                let newNodeFirstLeftChildParentOldValue = newNode.first().leftChild.parent;
-                newNode.first().leftChild.parent = newNode;
+
+            if (newNode.first()!.hasLeftChild()) {
+                const newNodeFirstLeftChildParentOldValue = newNode.first()!.leftChild!.parent;
+                newNode.first()!.leftChild!.parent = newNode;
+
                 this.addAtLastIndexOfCallStack(() => {
-                    newNode.first().leftChild.parent = newNodeFirstLeftChildParentOldValue;
+                    newNode.first()!.leftChild!.parent = newNodeFirstLeftChildParentOldValue;
                 });
             }
-            if (newNode.first().hasRightChild()) {
-                let newNodeFirstRightChildParentOldValue = newNode.first().rightChild.parent;
-                newNode.first().rightChild.parent = newNode;
+            if (newNode.first()!.hasRightChild()) {
+                const newNodeFirstRightChildParentOldValue = newNode.first()!.rightChild!.parent;
+                newNode.first()!.rightChild!.parent = newNode;
+
                 this.addAtLastIndexOfCallStack(() => {
-                    newNode.first().rightChild.parent = newNodeFirstRightChildParentOldValue
+                    newNode.first()!.rightChild!.parent = newNodeFirstRightChildParentOldValue;
                 });
             }
         }
         return newNode;
     }
 
-//    split up node and increase height of b-tree
-    liftUp(node, parentIndex, side) {
-        let parentElement = node.popAt(Math.floor(this.base / 2));
+    // split up node and increase height of b-tree
+    liftUp(node: BNode<T>, parentIndex: number, side: boolean): void {
+        const parentElement = node.popAt(Math.floor(this.base / 2));
         this.addAtLastIndexOfCallStack(
             this.undoPopAt.bind(this, parentElement, node, Math.floor(this.base / 2))
         );
-        let newNode = this.split(node);
+        const newNode = this.split(node);
 
         if (!node.hasParent()) {
-            node.parent = new BNode();
+            node.parent = new BNode<T>();
             let nodeParentIsLeafOldValue = node.parent.isLeaf;
             node.parent.isLeaf = false;
             this.addAtLastIndexOfCallStack(() => {
-                node.parent.isLeaf = nodeParentIsLeafOldValue;
+                node.parent!.isLeaf = nodeParentIsLeafOldValue;
             });
         }
 
         if (this.root === node) {
-            let rootOldValue = this.root;
-            this.root = node.parent;
+            const rootOldValue = this.root;
+            this.root = node.parent!;
             this.addAtLastIndexOfCallStack(() => {
-                this.root = rootOldValue
+                this.root = rootOldValue;
             });
         }
 
-        let newNodeParentOldValue = newNode.parent;
+        const newNodeParentOldValue = newNode.parent;
         newNode.parent = node.parent;
         this.addAtLastIndexOfCallStack(() => {
             newNode.parent = newNodeParentOldValue;
         });
 
-        let parentElementLeftChildOldValue = parentElement.leftChild;
+        const parentElementLeftChildOldValue = parentElement.leftChild;
         parentElement.leftChild = node;
         this.addAtLastIndexOfCallStack(() => {
-            parentElement.leftChild = parentElementLeftChildOldValue
+            parentElement.leftChild = parentElementLeftChildOldValue;
         });
 
-        let parentElementRightChildOldValue = parentElement.rightChild;
+        const parentElementRightChildOldValue = parentElement.rightChild;
         parentElement.rightChild = newNode;
         this.addAtLastIndexOfCallStack(() => {
             parentElement.rightChild = parentElementRightChildOldValue;
         });
 
-        if (node.parent.empty() || (parentIndex === node.parent.size() - 1 && side === true)) {
-            node.parent.addLast(parentElement);
+        if (node.parent!.empty() || (parentIndex === node.parent!.size() - 1 && side === true)) {
+            node.parent!.addLast(parentElement);
             this.addAtLastIndexOfCallStack(
-                this.undoAddLast.bind(this, node.parent)
+                this.undoAddLast.bind(this, node.parent!)
             );
-        } else {
-            if (node.parent.hasLeftChildAt(parentIndex)) {
-                let nodeParentAtLeftChildOldValue = node.parent.at(parentIndex).leftChild;
-                node.parent.at(parentIndex).leftChild = parentElement.rightChild;
+        }
+        else {
+            if (node.parent!.hasLeftChildAt(parentIndex)) {
+                const nodeParentAtLeftChildOldValue = node.parent!.at(parentIndex)!.leftChild;
+                node.parent!.at(parentIndex)!.leftChild = parentElement.rightChild;
                 this.addAtLastIndexOfCallStack(() => {
-                    node.parent.at(parentIndex).leftChild = nodeParentAtLeftChildOldValue;
+                    node.parent!.at(parentIndex)!.leftChild = nodeParentAtLeftChildOldValue;
                 });
             }
 
-            if (node.parent.hasRightChildAt(parentIndex - 1)) {
-                let nodeParentAtRightChildOldValue = node.parent.at(parentIndex - 1).rightChild;
-                node.parent.at(parentIndex - 1).rightChild = parentElement.leftChild;
+            if (node.parent!.hasRightChildAt(parentIndex - 1)) {
+                const nodeParentAtRightChildOldValue = node.parent!.at(parentIndex - 1)!.rightChild;
+                node.parent!.at(parentIndex - 1)!.rightChild = parentElement.leftChild;
                 this.addAtLastIndexOfCallStack(() => {
-                    node.parent.at(parentIndex - 1).rightChild = nodeParentAtRightChildOldValue;
+                    node.parent!.at(parentIndex - 1)!.rightChild = nodeParentAtRightChildOldValue;
                 });
             }
 
-            node.parent.addAt(parentIndex, parentElement);
+            node.parent!.addAt(parentIndex, parentElement);
             this.addAtLastIndexOfCallStack(
-                this.undoAddAt.bind(this, node.parent, parentIndex)
+                this.undoAddAt.bind(this, node.parent!, parentIndex)
             );
         }
 
-        let nodeParentIsLeafOldValue = node.parent.isLeaf;
-        node.parent.isLeaf = false;
+        let nodeParentIsLeafOldValue = node.parent!.isLeaf;
+        node.parent!.isLeaf = false;
         this.addAtLastIndexOfCallStack(() => {
-            node.parent.isLeaf = nodeParentIsLeafOldValue;
-        })
+            node.parent!.isLeaf = nodeParentIsLeafOldValue;
+        });
     }
 
-//    insert an element in b-tree
-    insert(elem, current = this.root, parentIndex = -1, side = false) {
+    // insert an element in b-tree
+    insert(elem: T, current: BNode<T> = this.root, parentIndex = -1, side = false): void {
         if (current.empty()) {
             this.callStack.push([]);
-            current.addFirst(new Element(elem));
+            current.addFirst(new Element<T>(elem));
             this.addAtLastIndexOfCallStack(
                 this.undoAddFirst.bind(this, current)
             );
             this.size++;
-            this.addAtLastIndexOfCallStack(()=>{
+            this.addAtLastIndexOfCallStack(() => {
                 this.size--;
             });
-            this.previous.push({action:"insert", data: elem});
+            this.previous.push({ action:'insert', data: elem });
             if(this.clearForwardOnAction)
                 this.forward = [];
-        } else if (elem >= current.last().value) {
+        }
+        else if (elem >= current.last()!.value) {
             if (current.hasRightmostChild()) {
-                this.insert(elem, current.getRightmostChild(), current.size() - 1, true);
-            } else {
+                this.insert(elem, current.getRightmostChild()!, current.size() - 1, true);
+            }
+            else {
                 this.callStack.push([]);
                 current.addLast(new Element(elem));
                 this.addAtLastIndexOfCallStack(
@@ -166,17 +184,19 @@ class BTree {
                         this.size--;
                     }
                 );
-                this.previous.push({action:"insert", data: elem});
+                this.previous.push({ action:'insert', data: elem });
                 if(this.clearForwardOnAction)
                     this.forward = [];
             }
-        } else {
+        }
+        else {
             for (let idx = 0; idx < current.size(); idx++) {
-                if (elem < current.valueAt(idx)) {
+                if (elem < current.valueAt(idx)!) {
                     if (current.hasLeftChildAt(idx)) {
-                        this.insert(elem, current.leftChildAt(idx), idx, false);
+                        this.insert(elem, current.leftChildAt(idx)!, idx, false);
                         break;
-                    } else {
+                    }
+                    else {
                         this.callStack.push([]);
                         current.addAt(idx, new Element(elem));
                         this.addAtLastIndexOfCallStack(
@@ -188,7 +208,7 @@ class BTree {
                                 this.size--;
                             }
                         );
-                        this.previous.push({action:"insert", data: elem});
+                        this.previous.push({ action:'insert', data: elem });
                         if(this.clearForwardOnAction)
                             this.forward = [];
                         break;
@@ -201,74 +221,74 @@ class BTree {
         }
     }
 
-//    get right sibling node
-    getRightSibling(node, side, parentPos) {
+    // get right sibling node
+    getRightSibling(node: BNode<T>, side: boolean, parentPos: number): BNode<T> | null {
         if (node.hasParent()) {
-            if (node.parent.hasRightChildAt(side ? parentPos + 1 : parentPos))
-                return node.parent.at(side ? parentPos + 1 : parentPos).rightChild;
+            if (node.parent!.hasRightChildAt(side ? parentPos + 1 : parentPos))
+                return node.parent!.at(side ? parentPos + 1 : parentPos)!.rightChild;
         }
         return null;
     }
 
-//    get left sibling node
-    getLeftSibling(node, side, parentPos) {
+    // get left sibling node
+    getLeftSibling(node: BNode<T>, side: boolean, parentPos: number): BNode<T> | null {
         if (node.hasParent()) {
-            if (node.parent.hasLeftChildAt(side ? parentPos : parentPos - 1))
-                return node.parent.at(side ? parentPos : parentPos - 1).leftChild;
+            if (node.parent!.hasLeftChildAt(side ? parentPos : parentPos - 1))
+                return node.parent!.at(side ? parentPos : parentPos - 1)!.leftChild;
         }
         return null;
     }
 
-//    merge elements from right sibling to left sibling
-    mergeToLeft(leftNode, rightNode) {
+    // merge elements from right sibling to left sibling
+    mergeToLeft(leftNode: BNode<T>, rightNode: BNode<T>): void {
         if (!rightNode.empty()) {
-            let leftNodeLastRightChildOldValue = leftNode.last().rightChild;
-            leftNode.last().rightChild = rightNode.getLeftmostChild();
+            const leftNodeLastRightChildOldValue = leftNode.last()!.rightChild;
+            leftNode.last()!.rightChild = rightNode.getLeftmostChild();
             this.addAtLastIndexOfCallStack(
                 () => {
-                    leftNode.last().rightChild = leftNodeLastRightChildOldValue;
+                    leftNode.last()!.rightChild = leftNodeLastRightChildOldValue;
                 }
-            )
+            );
             if (leftNode.hasRightmostChild()) {
-                let leftNodeLastRightChildParentOldValue = leftNode.last().rightChild.parent;
-                leftNode.last().rightChild.parent = leftNode;
+                let leftNodeLastRightChildParentOldValue = leftNode.last()!.rightChild!.parent;
+                leftNode.last()!.rightChild!.parent = leftNode;
                 this.addAtLastIndexOfCallStack(
                     () => {
-                        leftNode.last().rightChild.parent = leftNodeLastRightChildParentOldValue;
+                        leftNode.last()!.rightChild!.parent = leftNodeLastRightChildParentOldValue;
                     }
                 );
             }
             while (!rightNode.empty()) {
-                let rightNodeElement = rightNode.popFirst();
+                const rightNodeElement = rightNode.popFirst()!;
                 this.addAtLastIndexOfCallStack(
                     this.undoPopFirst.bind(this, rightNodeElement, rightNode)
                 );
                 leftNode.addLast(rightNodeElement);
                 this.addAtLastIndexOfCallStack(
                     this.undoAddLast.bind(this, leftNode)
-                )
-                if (leftNode.last().leftChild != null) {
-                    let leftNodeLastLeftChildParentOldValue = leftNode.last().leftChild.parent;
-                    leftNode.last().leftChild.parent = leftNode;
+                );
+                if (leftNode.last()!.leftChild !== null) {
+                    const leftNodeLastLeftChildParentOldValue = leftNode.last()!.leftChild!.parent;
+                    leftNode.last()!.leftChild!.parent = leftNode;
                     this.addAtLastIndexOfCallStack(
                         () => {
-                            leftNode.last().leftChild.parent = leftNodeLastLeftChildParentOldValue;
+                            leftNode.last()!.leftChild!.parent = leftNodeLastLeftChildParentOldValue;
                         }
-                    )
+                    );
                 }
-                if (leftNode.last().rightChild != null) {
-                    let leftNodeLastRightChildParentOldValue = leftNode.last().rightChild.parent;
-                    leftNode.last().rightChild.parent = leftNode;
+                if (leftNode.last()!.rightChild != null) {
+                    let leftNodeLastRightChildParentOldValue = leftNode.last()!.rightChild!.parent;
+                    leftNode.last()!.rightChild!.parent = leftNode;
                     this.addAtLastIndexOfCallStack(
                         () => {
-                            leftNode.last().rightChild.parent = leftNodeLastRightChildParentOldValue
+                            leftNode.last()!.rightChild!.parent = leftNodeLastRightChildParentOldValue;
                         }
                     );
                 }
             }
         }
 
-        let rightNodeParentOldValue = rightNode.parent;
+        const rightNodeParentOldValue = rightNode.parent;
         rightNode.parent = null;
         this.addAtLastIndexOfCallStack(
             () => {
@@ -276,8 +296,12 @@ class BTree {
             }
         );
 
-        let rightNodeOldValue = rightNode;
-        rightNode = null;
+        const rightNodeOldValue = rightNode;
+
+        // any is used for garbage collector
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any 
+        rightNode = null as any;
+
         this.addAtLastIndexOfCallStack(
             () => {
                 rightNode = rightNodeOldValue;
@@ -285,29 +309,29 @@ class BTree {
         );
     }
 
-//    merge elements from left sibling to right sibling
-    mergeToRight(leftNode, rightNode) {
+    // merge elements from left sibling to right sibling
+    mergeToRight(leftNode: BNode<T>, rightNode: BNode<T>): void {
         if (!leftNode.empty()) {
 
-            let rightNodeFirstLeftChildOldValue = rightNode.first().leftChild;
-            rightNode.first().leftChild = leftNode.getRightmostChild();
+            const rightNodeFirstLeftChildOldValue = rightNode.first()!.leftChild!;
+            rightNode.first()!.leftChild = leftNode.getRightmostChild();
             this.addAtLastIndexOfCallStack(
                 () => {
-                    rightNode.first().leftChild = rightNodeFirstLeftChildOldValue;
+                    rightNode.first()!.leftChild = rightNodeFirstLeftChildOldValue;
                 }
             );
 
             if (rightNode.hasLeftmostChild()) {
-                let rightNodeFirstLeftChildParentOldValue = rightNode.first().leftChild.parent;
-                rightNode.first().leftChild.parent = rightNode;
+                let rightNodeFirstLeftChildParentOldValue = rightNode.first()!.leftChild!.parent;
+                rightNode.first()!.leftChild!.parent = rightNode;
                 this.addAtLastIndexOfCallStack(
                     () => {
-                        rightNode.first().leftChild.parent = rightNodeFirstLeftChildParentOldValue;
+                        rightNode.first()!.leftChild!.parent = rightNodeFirstLeftChildParentOldValue;
                     }
                 );
             }
             while (!leftNode.empty()) {
-                let leftNodeElement = leftNode.popLast();
+                const leftNodeElement = leftNode.popLast()!;
                 this.addAtLastIndexOfCallStack(
                     this.undoPopLast.bind(this, leftNodeElement, leftNode)
                 );
@@ -317,37 +341,41 @@ class BTree {
                     this.undoAddFirst.bind(this, rightNode)
                 );
 
-                if (rightNode.first().leftChild !== null) {
-                    let rightNodeFirstLeftChildParentOldValue = rightNode.first().leftChild.parent;
-                    rightNode.first().leftChild.parent = rightNode;
+                if (rightNode.first()!.leftChild !== null) {
+                    let rightNodeFirstLeftChildParentOldValue = rightNode.first()!.leftChild!.parent;
+                    rightNode.first()!.leftChild!.parent = rightNode;
                     this.addAtLastIndexOfCallStack(
                         () => {
-                            rightNode.first().leftChild.parent = rightNodeFirstLeftChildParentOldValue;
+                            rightNode.first()!.leftChild!.parent = rightNodeFirstLeftChildParentOldValue;
                         }
                     );
                 }
-                if (rightNode.first().rightChild !== null) {
-                    let rightNodeFirstRightChildParentOldValue = rightNode.first().rightChild.parent;
-                    rightNode.first().rightChild.parent = rightNode;
+                if (rightNode.first()!.rightChild !== null) {
+                    const rightNodeFirstRightChildParentOldValue = rightNode.first()!.rightChild!.parent;
+                    rightNode.first()!.rightChild!.parent = rightNode;
                     this.addAtLastIndexOfCallStack(
                         () => {
-                            rightNode.first().rightChild.parent = rightNodeFirstRightChildParentOldValue;
+                            rightNode.first()!.rightChild!.parent = rightNodeFirstRightChildParentOldValue;
                         }
                     );
                 }
             }
         }
 
-        let leftNodeParentOldValue = leftNode.parent;
+        const leftNodeParentOldValue = leftNode.parent;
         leftNode.parent = null;
         this.addAtLastIndexOfCallStack(
             () => {
                 leftNode.parent = leftNodeParentOldValue;
             }
-        )
+        );
 
-        let leftNodeOldValue = leftNode;
-        leftNode = null;
+        const leftNodeOldValue = leftNode;
+
+        // assign it as a null for garbage collector
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        leftNode = null as any;
+        
         this.addAtLastIndexOfCallStack(
             () => {
                 leftNode = leftNodeOldValue;
@@ -356,14 +384,14 @@ class BTree {
 
     }
 
-//    shift one element from left child to parent and from parent to right child
-    propagateFromLeftSibling(node, parentPos, leftSibling) {
-        let nodeElement = node.parent.popAt(parentPos);
+    // shift one element from left child to parent and from parent to right child
+    propagateFromLeftSibling(node: BNode<T>, parentPos: number, leftSibling: BNode<T>): void {
+        const nodeElement = node.parent!.popAt(parentPos);
         this.addAtLastIndexOfCallStack(
-            this.undoPopAt.bind(this, nodeElement, node.parent, parentPos)
+            this.undoPopAt.bind(this, nodeElement, node.parent!, parentPos)
         );
 
-        let oldLeftChildValue = nodeElement.leftChild;
+        const oldLeftChildValue = nodeElement.leftChild;
         nodeElement.leftChild = leftSibling.getRightmostChild();
         this.addAtLastIndexOfCallStack(
             () => {
@@ -371,7 +399,7 @@ class BTree {
             }
         );
 
-        let oldRightChildValue = nodeElement.rightChild;
+        const oldRightChildValue = nodeElement.rightChild;
         nodeElement.rightChild = node.hasLeftmostChild() ? node.getLeftmostChild() : this.recentNode;
         this.addAtLastIndexOfCallStack(
             () => {
@@ -380,21 +408,21 @@ class BTree {
         );
 
         if (nodeElement.hasLeftChild()) {
-            let oldLeftChildParentValue = nodeElement.leftChild.parent;
-            nodeElement.leftChild.parent = node;
+            const oldLeftChildParentValue = nodeElement.leftChild!.parent;
+            nodeElement.leftChild!.parent = node;
             this.addAtLastIndexOfCallStack(
                 () => {
-                    nodeElement.leftChild.parent = oldLeftChildParentValue
+                    nodeElement.leftChild!.parent = oldLeftChildParentValue;
                 }
             );
         }
 
         if (nodeElement.hasRightChild()) {
-            let oldRightChildParentValue = nodeElement.rightChild.parent;
-            nodeElement.rightChild.parent = node;
+            const oldRightChildParentValue = nodeElement.rightChild!.parent;
+            nodeElement.rightChild!.parent = node;
             this.addAtLastIndexOfCallStack(
                 () => {
-                    nodeElement.rightChild.parent = oldRightChildParentValue
+                    nodeElement.rightChild!.parent = oldRightChildParentValue;
                 }
             );
         }
@@ -404,12 +432,12 @@ class BTree {
             this.undoAddFirst.bind(this, node)
         );
 
-        let parentElement = leftSibling.popLast();
+        const parentElement = leftSibling.popLast()!;
         this.addAtLastIndexOfCallStack(
             this.undoPopLast.bind(this, parentElement, leftSibling)
         );
 
-        let parentElementLeftChildOldValue = parentElement.leftChild;
+        const parentElementLeftChildOldValue = parentElement.leftChild;
         parentElement.leftChild = leftSibling;
         this.addAtLastIndexOfCallStack(
             () => {
@@ -417,28 +445,28 @@ class BTree {
             }
         );
 
-        let parentElementRightChildOldValue = parentElement.rightChild;
+        const parentElementRightChildOldValue = parentElement.rightChild;
         parentElement.rightChild = node;
         this.addAtLastIndexOfCallStack(
             () => {
-                parentElement.rightChild = parentElementRightChildOldValue
+                parentElement.rightChild = parentElementRightChildOldValue;
             }
         );
 
-        node.parent.addAt(parentPos, parentElement);
+        node.parent!.addAt(parentPos, parentElement);
         this.addAtLastIndexOfCallStack(
-            this.undoAddAt.bind(this, node.parent, parentPos)
+            this.undoAddAt.bind(this, node.parent!, parentPos)
         );
     }
 
-//    shift one element from right child to parent and from parent to left child
-    propagateFromRightSibling(node, parentPos, rightSibling) {
-        let nodeElement = node.parent.popAt(parentPos);
+    // shift one element from right child to parent and from parent to left child
+    propagateFromRightSibling(node: BNode<T>, parentPos: number, rightSibling: BNode<T>): void {
+        const nodeElement = node.parent!.popAt(parentPos);
         this.addAtLastIndexOfCallStack(
-            this.undoPopAt.bind(this, nodeElement, node.parent, parentPos)
+            this.undoPopAt.bind(this, nodeElement, node.parent!, parentPos)
         );
 
-        let nodeElementLeftChildOldValue = nodeElement.leftChild;
+        const nodeElementLeftChildOldValue = nodeElement.leftChild;
         nodeElement.leftChild = node.hasRightmostChild() ? node.getRightmostChild() : this.recentNode;
         this.addAtLastIndexOfCallStack(
             () => {
@@ -446,7 +474,7 @@ class BTree {
             }
         );
 
-        let nodeElementRightChildOldValue = nodeElement.rightChild;
+        const nodeElementRightChildOldValue = nodeElement.rightChild;
         nodeElement.rightChild = rightSibling.getLeftmostChild();
         this.addAtLastIndexOfCallStack(
             () => {
@@ -455,21 +483,21 @@ class BTree {
         );
 
         if (nodeElement.hasLeftChild()) {
-            let nodeElementLeftChildParentOldValue = nodeElement.leftChild.parent;
-            nodeElement.leftChild.parent = node;
+            const nodeElementLeftChildParentOldValue = nodeElement.leftChild!.parent;
+            nodeElement.leftChild!.parent = node;
             this.addAtLastIndexOfCallStack(
                 () => {
-                    nodeElement.leftChild.parent = nodeElementLeftChildParentOldValue;
+                    nodeElement.leftChild!.parent = nodeElementLeftChildParentOldValue;
                 }
             );
         }
 
         if (nodeElement.hasRightChild()) {
-            let nodeElementRightChildParent = nodeElement.rightChild.parent;
-            nodeElement.rightChild.parent = node;
+            const nodeElementRightChildParent = nodeElement.rightChild!.parent;
+            nodeElement.rightChild!.parent = node;
             this.addAtLastIndexOfCallStack(
                 () => {
-                    nodeElement.rightChild.parent = nodeElementRightChildParent;
+                    nodeElement.rightChild!.parent = nodeElementRightChildParent;
                 }
             );
         }
@@ -479,12 +507,12 @@ class BTree {
             this.undoAddLast.bind(this, node)
         );
 
-        let parentElement = rightSibling.popFirst();
+        const parentElement = rightSibling.popFirst()!;
         this.addAtLastIndexOfCallStack(
             this.undoPopFirst.bind(this, parentElement, rightSibling)
         );
 
-        let parentElementLeftChildOldValue = parentElement.leftChild;
+        const parentElementLeftChildOldValue = parentElement.leftChild;
         parentElement.leftChild = node;
         this.addAtLastIndexOfCallStack(
             () => {
@@ -492,7 +520,7 @@ class BTree {
             }
         );
 
-        let parentElementRightChildOldValue = parentElement.rightChild;
+        const parentElementRightChildOldValue = parentElement.rightChild;
         parentElement.rightChild = rightSibling;
         this.addAtLastIndexOfCallStack(
             () => {
@@ -500,49 +528,49 @@ class BTree {
             }
         );
 
-        node.parent.addAt(parentPos, parentElement);
+        node.parent!.addAt(parentPos, parentElement);
         this.addAtLastIndexOfCallStack(
-            this.undoAddAt.bind(this, node.parent, parentPos)
+            this.undoAddAt.bind(this, node.parent!, parentPos)
         );
     }
 
-//    push down parent node element to it's right child and then merge the children
-    propagateDownFromLeft(node, parentPos, leftSibling) {
-        let parentElement = node.parent.popAt(parentPos);
+    // push down parent node element to it's right child and then merge the children
+    propagateDownFromLeft(node: BNode<T>, parentPos: number, leftSibling: BNode<T>): void {
+        const parentElement = node.parent!.popAt(parentPos);
         this.addAtLastIndexOfCallStack(
-            this.undoPopAt.bind(this, parentElement, node.parent, parentPos)
+            this.undoPopAt.bind(this, parentElement, node.parent!, parentPos)
         );
-        if (node.parent.hasRightChildAt(parentPos - 1)) {
-            let nodeParentAtRightChildOldValue = node.parent.at(parentPos - 1).rightChild;
-            node.parent.at(parentPos - 1).rightChild = node;
+        if (node.parent!.hasRightChildAt(parentPos - 1)) {
+            const nodeParentAtRightChildOldValue = node.parent!.at(parentPos - 1)!.rightChild;
+            node.parent!.at(parentPos - 1)!.rightChild = node;
             this.addAtLastIndexOfCallStack(
                 () => {
-                    node.parent.at(parentPos - 1).rightChild = nodeParentAtRightChildOldValue;
+                    node.parent!.at(parentPos - 1)!.rightChild = nodeParentAtRightChildOldValue;
                 }
             );
         }
-        let parentElementLeftChildOldValue = parentElement.leftChild;
+        const parentElementLeftChildOldValue = parentElement.leftChild;
         parentElement.leftChild = null;
         this.addAtLastIndexOfCallStack(
             () => {
                 parentElement.leftChild = parentElementLeftChildOldValue;
             }
-        )
+        );
 
-        let parentElementRightChildOldValue = parentElement.rightChild;
+        const parentElementRightChildOldValue = parentElement.rightChild;
         parentElement.rightChild = node.hasLeftmostChild() ? node.getLeftmostChild() : this.recentNode;
         this.addAtLastIndexOfCallStack(
             () => {
                 parentElement.rightChild = parentElementRightChildOldValue;
             }
-        )
+        );
 
         node.addFirst(parentElement);
         this.addAtLastIndexOfCallStack(
             this.undoAddFirst.bind(this, node)
         );
 
-        let nodeIsLeafOldValue = node.isLeaf;
+        const nodeIsLeafOldValue = node.isLeaf;
         node.isLeaf = node.isLeaf && leftSibling.isLeaf;
         this.addAtLastIndexOfCallStack(
             () => {
@@ -552,7 +580,7 @@ class BTree {
 
         this.mergeToRight(leftSibling, node);
         if (node.parent === this.root && this.root.size() === 0) {
-            let rootOldValue = this.root;
+            const rootOldValue = this.root;
             this.root = node;
             this.addAtLastIndexOfCallStack(
                 () => {
@@ -560,34 +588,34 @@ class BTree {
                 }
             );
 
-            let nodeParentOldValue = node.parent;
+            const nodeParentOldValue = node.parent;
             node.parent = null;
             this.addAtLastIndexOfCallStack(
                 () => {
                     node.parent = nodeParentOldValue;
                 }
-            )
+            );
         }
     }
 
-//    push down parent node element to it's left child and then merge the children
-    propagateDownFromRight(node, parentPos, rightSibling) {
-        let parentElement = node.parent.popAt(parentPos);
+    // push down parent node element to it's left child and then merge the children
+    propagateDownFromRight(node: BNode<T>, parentPos: number, rightSibling: BNode<T>): void {
+        const parentElement = node.parent!.popAt(parentPos);
         this.addAtLastIndexOfCallStack(
-            this.undoPopAt.bind(this, parentElement, node.parent, parentPos)
+            this.undoPopAt.bind(this, parentElement, node.parent!, parentPos)
         );
 
-        if (node.parent.hasLeftChildAt(parentPos)) {
-            let nodeParentAtLeftChildOldValue = node.parent.at(parentPos).leftChild;
-            node.parent.at(parentPos).leftChild = node;
+        if (node.parent!.hasLeftChildAt(parentPos)) {
+            const nodeParentAtLeftChildOldValue = node.parent!.at(parentPos)!.leftChild;
+            node.parent!.at(parentPos)!.leftChild = node;
             this.addAtLastIndexOfCallStack(
                 () => {
-                    node.parent.at(parentPos).leftChild = nodeParentAtLeftChildOldValue;
+                    node.parent!.at(parentPos)!.leftChild = nodeParentAtLeftChildOldValue;
                 }
-            )
+            );
         }
 
-        let parentElementLeftChildOldValue = parentElement.leftChild;
+        const parentElementLeftChildOldValue = parentElement.leftChild;
         parentElement.leftChild = node.hasRightmostChild() ? node.getRightmostChild() : this.recentNode;
         this.addAtLastIndexOfCallStack(
             () => {
@@ -595,7 +623,7 @@ class BTree {
             }
         );
 
-        let parentElementRightChildOldValue = parentElement.rightChild;
+        const parentElementRightChildOldValue = parentElement.rightChild;
         parentElement.rightChild = null;
         this.addAtLastIndexOfCallStack(
             () => {
@@ -608,7 +636,7 @@ class BTree {
             this.undoAddLast.bind(this, node)
         );
 
-        let nodeIsLeafOldValue = node.isLeaf;
+        const nodeIsLeafOldValue = node.isLeaf;
         node.isLeaf = node.isLeaf && rightSibling.isLeaf;
         this.addAtLastIndexOfCallStack(
             () => {
@@ -620,15 +648,15 @@ class BTree {
 
 
         if (node.parent === this.root && this.root.size() === 0) {
-            let rootOldValue = this.root;
+            const rootOldValue = this.root;
             this.root = node;
             this.addAtLastIndexOfCallStack(
                 () => {
                     this.root = rootOldValue;
                 }
-            )
+            );
 
-            let nodeParentOldValue = node.parent;
+            const nodeParentOldValue = node.parent;
             node.parent = null;
             this.addAtLastIndexOfCallStack(
                 () => {
@@ -638,34 +666,35 @@ class BTree {
         }
     }
 
-//    restore minimum number of elements in node
-    balance(node, parentPosition, side) {
-        let leftSibling = this.getLeftSibling(node, side, parentPosition);
-        let rightSibling = this.getRightSibling(node, side, parentPosition);
+    // restore minimum number of elements in node
+    balance(node: BNode<T>, parentPosition: number, side: boolean): void {
+        const leftSibling = this.getLeftSibling(node, side, parentPosition);
+        const rightSibling = this.getRightSibling(node, side, parentPosition);
 
-//        case 3: when a node has minimum number of elements and left-sibling with more than minimum number of elements
+        //     case 3: when a node has minimum number of elements and left-sibling with more than minimum number of elements
         if (leftSibling != null && leftSibling.size() > this.minElements)
             this.propagateFromLeftSibling(node, side ? parentPosition : parentPosition - 1, leftSibling);
-//        case 4: when a node has minimum number of elements and right-sibling with more than minimum number of elements
+        //     case 4: when a node has minimum number of elements and right-sibling with more than minimum number of elements
         else if (rightSibling != null && rightSibling.size() > this.minElements)
             this.propagateFromRightSibling(node, side ? parentPosition + 1 : parentPosition, rightSibling);
-//        case 5: when a node has minimum number of elements and left-sibling with minimum number of elements
+        //     case 5: when a node has minimum number of elements and left-sibling with minimum number of elements
         else if (leftSibling != null && leftSibling.size() <= this.minElements)
             this.propagateDownFromLeft(node, side ? parentPosition : parentPosition - 1, leftSibling);
-//        case 6: when a node has minimum number of elements and right-sibling with minimum number of elements
+        //     case 6: when a node has minimum number of elements and right-sibling with minimum number of elements
         else if (rightSibling != null && rightSibling.size() <= this.minElements)
             this.propagateDownFromRight(node, side ? parentPosition + 1 : parentPosition, rightSibling);
         this.recentNode = node;
     }
 
-//    take inorder predecessor and balance affected nodes excluding the root node of sub-tree
-    takeInorderPredecessor(current, parentPosition, side, top = true) {
-        let inorderPredecessor;
+    // take inorder predecessor and balance affected nodes excluding the root node of sub-tree
+    takeInorderPredecessor(current: BNode<T>, parentPosition: number, side: boolean, top = true): Element<T> {
+        let inorderPredecessor: Element<T>;
         if (current.hasRightmostChild()) {
             inorderPredecessor =
-                this.takeInorderPredecessor(current.getRightmostChild(), current.size() - 1, true, false)
-        } else {
-            let currentLastElement = current.popLast();
+                this.takeInorderPredecessor(current.getRightmostChild()!, current.size() - 1, true, false);
+        }
+        else {
+            const currentLastElement = current.popLast()!;
             this.addAtLastIndexOfCallStack(
                 this.undoPopLast.bind(this, currentLastElement, current)
             );
@@ -676,16 +705,17 @@ class BTree {
         return inorderPredecessor;
     }
 
-//    take inorder successor and balance affected nodes excluding the root node of sub-tree
-    takeInorderSuccessor(current, parentPosition, side, top = true) {
+    // take inorder successor and balance affected nodes excluding the root node of sub-tree
+    takeInorderSuccessor(current: BNode<T>, parentPosition: number, side: boolean, top = true): Element<T> {
         let inorderSuccessor;
         if (current.hasLeftmostChild()) {
-            inorderSuccessor = this.takeInorderSuccessor(current.getLeftmostChild(), 0, false, false);
-        } else {
-            let currentFirstElement = current.popFirst();
+            inorderSuccessor = this.takeInorderSuccessor(current.getLeftmostChild()!, 0, false, false);
+        }
+        else {
+            const currentFirstElement = current.popFirst()!;
             this.addAtLastIndexOfCallStack(
                 this.undoPopFirst.bind(this, currentFirstElement, current)
-            )
+            );
             inorderSuccessor = currentFirstElement;
         }
         if (!top && current.size() < this.minElements)
@@ -693,32 +723,33 @@ class BTree {
         return inorderSuccessor;
     }
 
-//    different cases of deletion are implemented here
-    eraseDispatch(node, position, parentPosition, side) {
+    // different cases of deletion are implemented here
+    eraseDispatch(node: BNode<T>, position: number, parentPosition: number, side: boolean): void {
         if (node.isLeaf) {
-//            case 1: when leaf-node has more than minimum number of elements
+            // case 1: when leaf-node has more than minimum number of elements
             if (node.size() > this.minElements) {
                 let erasedElement = node.popAt(position);
                 this.addAtLastIndexOfCallStack(
                     this.undoPopAt.bind(this, erasedElement, node, position)
                 );
             }
-//            case 2: when leaf-node does not have more than minimum number of elements
+            // case 2: when leaf-node does not have more than minimum number of elements
             else {
                 let erasedElement = node.popAt(position);
                 this.addAtLastIndexOfCallStack(
                     this.undoPopAt.bind(this, erasedElement, node, position)
-                )
+                );
                 this.balance(node, parentPosition, side);
             }
-        } else {
-//            case 7: when internal node has a left child
+        }
+        else {
+            // case 7: when internal node has a left child
             if (node.hasLeftChildAt(position)) {
-                let elem = node.at(position);
+                let elem = node.at(position)!;
 
-                let inorderPredecessor = this.takeInorderPredecessor(elem.leftChild, position, false);
+                const inorderPredecessor = this.takeInorderPredecessor(elem.leftChild!, position, false);
 
-                let inorderPredecessorOldValue = inorderPredecessor.leftChild;
+                const inorderPredecessorOldValue = inorderPredecessor.leftChild;
                 inorderPredecessor.leftChild = elem.leftChild;
                 this.addAtLastIndexOfCallStack(
                     () => {
@@ -726,7 +757,7 @@ class BTree {
                     }
                 );
 
-                let inorderPredecessorRightChildOldValue = inorderPredecessor.rightChild;
+                const inorderPredecessorRightChildOldValue = inorderPredecessor.rightChild;
                 inorderPredecessor.rightChild = elem.rightChild;
                 this.addAtLastIndexOfCallStack(
                     () => {
@@ -745,23 +776,23 @@ class BTree {
                     this.undoAddAt.bind(this, node, position)
                 );
 
-                if (node.leftChildAt(position).size() < this.minElements)
-                    this.balance(node.leftChildAt(position), position, false);
+                if (node.leftChildAt(position)!.size() < this.minElements)
+                    this.balance(node.leftChildAt(position)!, position, false);
             }
-//            case 8: when internal node has a right child
+            // case 8: when internal node has a right child
             else if (node.hasRightChildAt(position)) {
-                let elem = node.at(position);
-                let inorderSuccessor = this.takeInorderSuccessor(elem.rightChild, position, true);
+                let elem = node.at(position)!;
+                const inorderSuccessor = this.takeInorderSuccessor(elem.rightChild!, position, true);
 
-                let inorderSuccessorLeftChildOldValue = inorderSuccessor.leftChild;
+                const inorderSuccessorLeftChildOldValue = inorderSuccessor.leftChild;
                 inorderSuccessor.leftChild = elem.leftChild;
                 this.addAtLastIndexOfCallStack(
                     () => {
-                        inorderSuccessor.leftChild = inorderSuccessorLeftChildOldValue
+                        inorderSuccessor.leftChild = inorderSuccessorLeftChildOldValue;
                     }
-                )
+                );
 
-                let inorderSuccessorRightChildOldValue = inorderSuccessor.rightChild;
+                const inorderSuccessorRightChildOldValue = inorderSuccessor.rightChild;
                 inorderSuccessor.rightChild = elem.rightChild;
                 this.addAtLastIndexOfCallStack(
                     () => {
@@ -779,24 +810,27 @@ class BTree {
                     this.undoAddAt.bind(this, node, position)
                 );
 
-                if (node.rightChildAt(position).size() < this.minElements)
-                    this.balance(node.rightChildAt(position), position, true);
+                if (node.rightChildAt(position)!.size() < this.minElements)
+                    this.balance(node.rightChildAt(position)!, position, true);
             }
         }
     }
 
-//    deletion of element
-    erase(elem, current = this.root, parentIndex = -1, side = false, isRoot = true) {
+    // deletion of element
+    erase(elem: T, current: BNode<T> = this.root, parentIndex = -1, side = false, isRoot = true): void {
         this.recentNode = null;
         if (current.empty()) {
             return;
-        } else if (elem > current.last().value) {
+        }
+        else if (elem > current.last()!.value) {
             if (current.hasRightmostChild()) {
-                this.erase(elem, current.getRightmostChild(), current.size() - 1, true, false);
-            } else {
+                this.erase(elem, current.getRightmostChild()!, current.size() - 1, true, false);
+            }
+            else {
                 return;
             }
-        } else {
+        }
+        else {
             for (let idx = 0; idx < current.size(); idx++) {
                 if (elem === current.valueAt(idx)) {
                     this.callStack.push([]);
@@ -807,15 +841,17 @@ class BTree {
                             this.size++;
                         }
                     );
-                    this.previous.push({action:"erase", data: elem});
+                    this.previous.push({ action:'erase', data: elem });
                     if(this.clearForwardOnAction)
                         this.forward = [];
                     break;
-                } else if (elem < current.valueAt(idx)) {
+                }
+                else if (elem < current.valueAt(idx)!) {
                     if (current.hasLeftChildAt(idx)) {
-                        this.erase(elem, current.leftChildAt(idx), idx, false, false);
+                        this.erase(elem, current.leftChildAt(idx)!, idx, false, false);
                         break;
-                    } else {
+                    }
+                    else {
                         return;
                     }
                 }
@@ -827,35 +863,51 @@ class BTree {
         this.recentNode = current;
     }
 
-    print_all(current = this.root) {
+    print_all(current: BNode<T> = this.root): void {
         current.elements.forEach(
             i => {
                 if (i.hasLeftChild())
-                    this.print_all(i.leftChild);
+                    this.print_all(i.leftChild!);
                 process.stdout.write(`${i.value} `);
             }
-        )
+        );
 
 
         if (current.hasRightmostChild())
-            this.print_all(current.last().rightChild);
+            this.print_all(current.last()!.rightChild!);
     }
 
-    bfs(root = this.root) {
+    bfs(root: BNode<T> = this.root): {
+        id: number;
+        elements: T[];
+        level: number;
+        parent: number;
+        isLeaf: boolean;
+        parentElement: number;
+        side: 'left' | 'right';
+    }[][][] {
         if(this.size === 0)
             return [];
-        let nodes = [];
-        let queue = [{
+        const nodes: {
+            id: number,
+            elements: T[],
+            level: number,
+            parent: number,
+            isLeaf: boolean,
+            parentElement: number,
+            side: 'left' | 'right'
+        }[][][] = [];
+        const queue = [{
             id: 0,
             level: 0,
             node: root,
             parent: -1,
             parentElement: 0,
-            side: 'left'
+            side: 'left' as ('left' | 'right')
         }];
         let lastParent = -2;
         for (let i = 0; queue.length !== 0;) {
-            const {id, level, node, parent, parentElement, side} = queue.shift();
+            const { id, level, node, parent, parentElement, side } = queue.shift()!;
             node.elements.forEach(
                 (element, index) => {
                     if (element.hasLeftChild()) {
@@ -863,23 +915,23 @@ class BTree {
                         queue.push({
                             id: i,
                             level: level + 1,
-                            node: element.leftChild,
+                            node: element.leftChild!,
                             parent: id,
                             parentElement: index,
-                            side: 'left'
+                            side: 'left' as const
                         });
                     }
                 }
-            )
+            );
             if (node.hasRightmostChild()) {
                 i++;
                 queue.push({
                     id: i,
                     level: level + 1,
-                    node: node.last().rightChild,
+                    node: node.last()!.rightChild!,
                     parent: id,
                     parentElement: node.size() - 1,
-                    side: 'right'
+                    side: 'right' as const
                 });
             }
 
@@ -904,49 +956,49 @@ class BTree {
         return nodes;
     }
 
-    undo() {
+    undo(): void {
         if (this.callStack.length > 0) {
-            let lastOperations = this.callStack.pop();
+            const lastOperations = this.callStack.pop() || [];
             while (lastOperations.length > 0) {
-                let lastOperation = lastOperations.pop();
+                const lastOperation = lastOperations.pop()!;
                 lastOperation();
             }
-            this.forward.push(this.previous.pop());
+            this.forward.push(this.previous.pop()!);
         }
     }
 
-    undoPopAt(element, node, position) {
+    undoPopAt(element: Element<T>, node: BNode<T>, position: number): void {
         node.addAt(position, element);
     }
 
-    undoAddAt(node, position) {
+    undoAddAt(node: BNode<T>, position: number): void {
         node.popAt(position);
     }
 
-    undoAddFirst(node) {
+    undoAddFirst(node: BNode<T>): void {
         node.popFirst();
     }
 
-    undoAddLast(node) {
+    undoAddLast(node: BNode<T>): void {
         node.popLast();
     }
 
-    undoPopFirst(element, node) {
+    undoPopFirst(element: Element<T>, node: BNode<T>): void {
         node.addFirst(element);
     }
 
-    undoPopLast(element, node) {
+    undoPopLast(element: Element<T>, node: BNode<T>): void {
         node.addLast(element);
     }
 
-    redo(){
+    redo(): void{
         if(this.forward.length > 0){
-            let lastOperation = this.forward.pop();
+            const lastOperation = this.forward.pop()!;
             this.clearForwardOnAction = false;
-            if(lastOperation.action === "insert"){
+            if(lastOperation.action === 'insert'){
                 this.insert(lastOperation.data);
             }
-            else if(lastOperation.action === "erase"){
+            else if(lastOperation.action === 'erase'){
                 this.erase(lastOperation.data);
             }
             this.clearForwardOnAction = true;

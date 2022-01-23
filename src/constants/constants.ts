@@ -1,10 +1,10 @@
 export const grads = [
-    "linear-gradient(to top, #5ee7df 0%, #b490ca 100%)",
-    "linear-gradient(to right, #06beb6, #48b1bf)",
-    "linear-gradient(120deg, #e0c3fc 0%, #8ec5fc 100%)",
-    "linear-gradient(to right, rgb(127, 127, 213), rgb(134, 168, 231), rgb(145, 234, 228))",
-    "linear-gradient(120deg, #f093fb 0%, #f5576c 100%)",
-    "linear-gradient(to right, rgb(238, 9, 121), rgb(255, 106, 0))"
+    'linear-gradient(to top, #5ee7df 0%, #b490ca 100%)',
+    'linear-gradient(to right, #06beb6, #48b1bf)',
+    'linear-gradient(120deg, #e0c3fc 0%, #8ec5fc 100%)',
+    'linear-gradient(to right, rgb(127, 127, 213), rgb(134, 168, 231), rgb(145, 234, 228))',
+    'linear-gradient(120deg, #f093fb 0%, #f5576c 100%)',
+    'linear-gradient(to right, rgb(238, 9, 121), rgb(255, 106, 0))'
 ];
 
 export const themeParams = [
@@ -111,32 +111,32 @@ export const nodeParams = [
 
 export const elementParams = [
     {
-        background: "rgba(0, 0, 0, 0) linear-gradient(-225deg, rgba(227, 253, 245, 0.32) 0%, " +
-            "rgba(255, 230, 250, 0.79) 100%) repeat scroll 0% 0%",
+        background: 'rgba(0, 0, 0, 0) linear-gradient(-225deg, rgba(227, 253, 245, 0.32) 0%, ' +
+            'rgba(255, 230, 250, 0.79) 100%) repeat scroll 0% 0%',
     },
     {
-        background: "rgba(0, 0, 0, 0) linear-gradient(-225deg, rgba(227, 253, 245, 0.32) 0%, " +
-            "rgba(255, 230, 250, 0.79) 100%) repeat scroll 0% 0%",
+        background: 'rgba(0, 0, 0, 0) linear-gradient(-225deg, rgba(227, 253, 245, 0.32) 0%, ' +
+            'rgba(255, 230, 250, 0.79) 100%) repeat scroll 0% 0%',
     },
     {
-        background: "transparent",
+        background: 'transparent',
         fontSize: '1.1rem',
         fontWeight: '600',
         color: 'rgb(0, 3, 9)'
     },
     {
-        background: "rgba(0, 0, 0, 0) linear-gradient(-225deg, rgba(227, 253, 245, 0.32) 0%, " +
-            "rgba(255, 230, 250, 0.79) 100%) repeat scroll 0% 0%",
+        background: 'rgba(0, 0, 0, 0) linear-gradient(-225deg, rgba(227, 253, 245, 0.32) 0%, ' +
+            'rgba(255, 230, 250, 0.79) 100%) repeat scroll 0% 0%',
     },
     {
-        background: "rgba(0, 0, 0, 0) linear-gradient(-225deg, rgba(227, 253, 245, 0.32) 0%, " +
-            "rgba(255, 230, 250, 0.79) 100%) repeat scroll 0% 0%",
+        background: 'rgba(0, 0, 0, 0) linear-gradient(-225deg, rgba(227, 253, 245, 0.32) 0%, ' +
+            'rgba(255, 230, 250, 0.79) 100%) repeat scroll 0% 0%',
     },
     {
-        background: "rgba(0, 0, 0, 0) linear-gradient(-225deg, rgba(227, 253, 245, 0.32) 0%, " +
-            "rgba(255, 230, 250, 0.79) 100%) repeat scroll 0% 0%",
+        background: 'rgba(0, 0, 0, 0) linear-gradient(-225deg, rgba(227, 253, 245, 0.32) 0%, ' +
+            'rgba(255, 230, 250, 0.79) 100%) repeat scroll 0% 0%',
     }
-]
+];
 
 export const themeNames = [
     'Andromeda',
@@ -147,6 +147,4 @@ export const themeNames = [
     'Sweet Midnight'
 ];
 
-export const boundsById = {};
-
-export const setXById = {};
+export const setXById: { [key in string]?: (x: number) => void } = {};

@@ -1,5 +1,5 @@
 // arranging positions
-export const arrangePositions = (levels, setXById) => {
+export const arrangePositions = (levels: Levels, setXById: { [key in string]?: (x: number) => void }) => {
     levels.forEach((levelItems, levelIndex) => {
         if (document.getElementById(`level-${levelIndex}`)) {
             let leftSum = 0;
@@ -13,8 +13,8 @@ export const arrangePositions = (levels, setXById) => {
                     const leftNodeBounds = leftNode.getBoundingClientRect();
                     const rightNodeBounds = rightNode.getBoundingClientRect();
                     const parentNodeBounds = parentNode.getBoundingClientRect();
-                    if (setXById[`node-${nodes[0].parent}`]) {
-                        setXById[`node-${nodes[0].parent}`](
+                    if (typeof setXById[`node-${nodes[0].parent}`] === 'function') {
+                        setXById[`node-${nodes[0].parent}`]!(
                             (leftNodeBounds.left)
                             + scene.scrollLeft
                             + ((rightNodeBounds.left + rightNodeBounds.width - leftNodeBounds.left) / 2)
@@ -29,24 +29,21 @@ export const arrangePositions = (levels, setXById) => {
                 }
             });
         }
-    })
+    });
 };
 
 // arranging lines
-export const arrangeNodeLines = (levels,
-    currentLevel = 0,
-    currentCluster = 0,
-    currentNode = 0) => {
+export const arrangeNodeLines = (levels: Levels, currentLevel = 0, currentCluster = 0, currentNode = 0) => {
     if(levels[currentLevel][currentCluster][currentNode].isLeaf === false) {
         let nextCluster = 0;
         for (let i = 0; i < currentCluster; i++)
             nextCluster += levels[currentLevel][i].length;
         nextCluster += currentNode;
-        levels[currentLevel+1][nextCluster].forEach((node) => {
-            const {id, parent, parentElement, side} = node;
+        levels[currentLevel + 1][nextCluster].forEach((node) => {
+            const { id, parent, parentElement, side } = node;
             const end = document.querySelector(`#node-${id}`);
             const start = document.querySelector(`.node-${parent}-${parentElement}-${side}`);
-            const line = document.querySelector(`.line-${parent}-${parentElement}-${side}`);
+            const line = document.querySelector<HTMLDivElement>(`.line-${parent}-${parentElement}-${side}`);
             if (start && end && line) {
                 //first dot
                 const aX = 0;
