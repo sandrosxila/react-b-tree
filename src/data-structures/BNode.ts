@@ -3,7 +3,7 @@ import Element from './Element';
 class BNode<T = string | number> {
     public isLeaf: boolean;
     public parent: BNode<T> | null;
-    public elements: Element<T>[]
+    public elements: Element<T>[];
 
     constructor() {
         this.isLeaf = true;
