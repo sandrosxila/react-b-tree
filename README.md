@@ -1,6 +1,12 @@
-# Getting Started with Create React App
+# B-tree Visualization
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+## About Project
+
+B-tree Visualization Web-Page written in the React Framework.
+
+This project is deployed on [Netlify](https://react-b-tree-visualization.netlify.app/).
+
+---
 
 ## Available Scripts
 
