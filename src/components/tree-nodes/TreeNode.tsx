@@ -1,4 +1,4 @@
-import React, { FC, useEffect, useState } from 'react';
+import React, { FC, useEffect, useLayoutEffect, useState } from 'react';
 import { animated, config, useSpring, useTransition } from 'react-spring';
 import { arrangePositions, arrangeNodeLines } from '../../functions/drawers';
 import { nodeParams, elementParams, grads } from '../../constants/constants';
@@ -41,7 +41,7 @@ const TreeNode: FC<Props> = ({ levels, themeIndex, elements, isLeaf, id, setXByI
         },
     });
 
-    useEffect(() => {
+    useLayoutEffect(() => {
         if (!isLeaf) arrangeNodeLines(levels, level, cluster, index);
         arrangePositions(levels, setXById);
         // eslint-disable-next-line
